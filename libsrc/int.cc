@@ -30,6 +30,30 @@ INT::INT(const std::string& s)
   fmpz_set_str(z, s.c_str(), 10);
 }
 
+explicit INT::operator unsigned long long() const
+{
+  fmpz_t tmp;
+  fmpz_init_set(tmp, z);
+  unsigned long long low = fmpz_get_ui(tmp) & 0xFFFFFFFFULL;
+  fmpz_fdiv_q_2exp(tmp, tmp, 32);
+  unsigned long long high = fmpz_get_ui(tmp) & 0xFFFFFFFFULL;
+  fmpz_clear(tmp);
+  return (high << 32) | low;
+}
+
+explicit INT::operator long long() const
+{
+  fmpz_t tmp;
+  fmpz_init(tmp);
+  fmpz_abs(tmp, z);
+  unsigned long long low = fmpz_get_ui(tmp) & 0xFFFFFFFFULL;
+  fmpz_fdiv_q_2exp(tmp, tmp, 32);
+  unsigned long long high = fmpz_get_ui(tmp) & 0xFFFFFFFFULL;
+  fmpz_clear(tmp);
+  long long abs_val = (high << 32) | low;
+  return (fmpz_sgn(z) < 0) ? -abs_val : abs_val;
+}
+
 std::ostream& operator<<(std::ostream& s, const INT& a)
 {
   char* st = fmpz_get_str(NULL, 10, a.z);
