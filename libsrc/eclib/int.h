@@ -40,7 +40,15 @@ public:
   // Constructors:
   INT() {fmpz_init(z);} // sets to 0
   explicit INT(int a) {fmpz_init_set_si(z, a);}
+  explicit INT(unsigned int a) {fmpz_init_set_ui(z, a);}
   explicit INT(long a) {fmpz_init_set_si(z, a); }
+  explicit INT(unsigned long a) {fmpz_init_set_ui(z, a);}
+  explicit INT(long long a) {
+    unsigned long long abs_val = (a < 0) ? -(unsigned long long)a : (unsigned long long)a;
+    fmpz_init_set_ui(z, a >> 32); fmpz_mul_2exp(z, z, 32); fmpz_add_ui(z, z, a % (1ull << 32));
+    if (a < 0) fmpz_neg(z, z);
+  }
+  explicit INT(unsigned long long a) {fmpz_init_set_ui(z, a >> 32); fmpz_mul_2exp(z, z, 32); fmpz_add_ui(z, z, a % (1ull << 32));}
   INT(const INT& a) {fmpz_init_set(z, a.z);}
   explicit INT(fmpz_t a) {fmpz_init_set(z, a);}
   explicit INT(const std::string& s);
@@ -136,6 +144,13 @@ public:
   friend int modrat(const INT& n, const INT& m, const INT& lim, /* return values: */ INT& a, INT& b);
   friend int modrat(const INT& n, const INT& m, /* return value: */ RAT& q);
   friend INT NextPrime(const INT& a, int proof);
+// explicit conversion to integer types
+  explicit operator unsigned long long() const;
+  explicit operator unsigned long() const;
+  explicit operator unsigned() const {return fmpz_get_ui(z);}
+  explicit operator long long() const {return fmpz_get_si(z);}
+  explicit operator long() const {return fmpz_get_si(z);}
+  explicit operator int() const {return fmpz_get_si(z);}
 };
 
 inline int sign(const INT& a) {return a.sign();}
